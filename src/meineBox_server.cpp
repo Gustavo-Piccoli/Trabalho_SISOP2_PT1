@@ -1,7 +1,8 @@
 #include <iostream>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <sys/un.h>
 #include <string.h>
+
 
 #include "Datagram.hpp"
 
@@ -14,24 +15,20 @@
         -> Close
 */
 
-#define SERVER_PORT 7777
-
 using namespace std;
 
 int main(){
     // Creation
-    int socket_descriptor =  socket(AF_INET, SOCK_DGRAM, 0);
+    int socket_descriptor =  socket(AF_UNIX, SOCK_DGRAM, 0);
     if( socket_descriptor == -1)
       perror("Error socket creation");
 
     // Bind
-    struct sockaddr_in server_address;
-    server_address.sin_family = AF_INET;
-    server_address.sin_port = htons(SERVER_PORT);
-    server_address.sin_addr.s_addr = INADDR_ANY; 
-    bzero(&(server_address.sin_zero), 8);   
-    
-    if( bind(socket_descriptor, (struct sockaddr *)&server_address, sizeof(struct sockaddr) ) < 0 )
+    struct sockaddr_un server_address;
+    server_address.sun_family  = AF_UNIX;
+    strcpy( server_address.sun_path, SERVER_PATH);
+
+    if( bind(socket_descriptor, (struct sockaddr *)&server_address, sizeof(server_address) ) < 0 )
       perror("Error on socket binding");
    
     // Recieve
@@ -51,6 +48,7 @@ int main(){
     // Send
 
     // Close
+    remove(SERVER_PATH);
     delete client_address;
     delete client_address_length;
 
