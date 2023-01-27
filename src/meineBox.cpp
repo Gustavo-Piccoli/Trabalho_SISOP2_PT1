@@ -1,62 +1,53 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
+#include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h> 
+#include <netdb.h>
+#include <string.h>
 
-#define PORT 4000
+#include "Datagram.hpp"
 
-int main(int argc, char *argv[])
-{
-    int sockfd, n;
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
-	
-    char buffer[256];
-    if (argc < 2) {
-		fprintf(stderr,"usage %s hostname\n", argv[0]);
-		exit(0);
-    }
-	
-	server = gethostbyname(argv[1]);
-	if (server == NULL) {
-        fprintf(stderr,"ERROR, no such host\n");
-        exit(0);
-    }
-    
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) 
-        printf("ERROR opening socket\n");
-    
-	serv_addr.sin_family = AF_INET;     
-	serv_addr.sin_port = htons(PORT);    
-	serv_addr.sin_addr = *((struct in_addr *)server->h_addr);
-	bzero(&(serv_addr.sin_zero), 8);     
-	
-    
-	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-        printf("ERROR connecting\n");
+/** UDP - Client
+     Sumary:    
+        -> Creation
+        -> Send
+        -> Recieve
+        -> Close
+*/
+#define HOST_NAME "localhost"
+#define SERVER_PORT 7777
 
-    printf("Enter the message: ");
-    bzero(buffer, 256);
-    fgets(buffer, 256, stdin);
-    
-	/* write in the socket */
-	n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0) 
-		printf("ERROR writing to socket\n");
+using namespace std;
 
-    bzero(buffer,256);
-	
-	/* read from the socket */
-    n = read(sockfd, buffer, 256);
-    if (n < 0) 
-		printf("ERROR reading from socket\n");
+int main(){
+    // Creation
+    int socket_descriptor =  socket(AF_INET, SOCK_DGRAM, 0);
+    if( socket_descriptor == -1)
+      perror("Error socket creation");
 
-    printf("%s\n",buffer);
+    // Send
+    Datagram datagram_buffer;
+    struct hostent *server = gethostbyname(HOST_NAME);
+    struct sockaddr_in server_address;
     
-	close(sockfd);
-    return 0;
+    server_address.sin_addr = *((struct in_addr*)server->h_addr_list[0]);
+    server_address.sin_port = htons(SERVER_PORT);
+    server_address.sin_family = AF_INET;
+    bzero(&(server_address.sin_zero), 8); 
+
+    strcpy( datagram_buffer.data, "Hello server. The learning operation today was susccessfully. See you later. Take care!" );
+
+    int bytes_sended;
+    bytes_sended = sendto(socket_descriptor, datagram_buffer.data, DATAGRAM_LENGTH, 0, (const struct sockaddr*) &server_address, (socklen_t) sizeof(server_address));
+    
+    cout << "Mensagem Enviada!" << endl;
+    cout << "\t Length: " << bytes_sended << " Bytes" << endl;
+    cout << "\t Destinatario: " << server_address.sin_addr.s_addr << endl;
+    cout << "\t Message: " << datagram_buffer.data << endl;
+    cout << "Encerrando ..." << endl;
+
+    //Recieve
+
+    // Close
+
+
 }
