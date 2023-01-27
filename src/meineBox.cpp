@@ -1,62 +1,46 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
+#include <iostream>
+#include <string>
+#include <cstring>
+
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h> 
+#include <unistd.h>
 
-#define PORT 4000
+#include "errorHandling.hpp"
 
-int main(int argc, char *argv[])
-{
-    int sockfd, n;
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
-	
-    char buffer[256];
-    if (argc < 2) {
-		fprintf(stderr,"usage %s hostname\n", argv[0]);
-		exit(0);
-    }
-	
-	server = gethostbyname(argv[1]);
-	if (server == NULL) {
-        fprintf(stderr,"ERROR, no such host\n");
-        exit(0);
-    }
-    
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) 
-        printf("ERROR opening socket\n");
-    
-	serv_addr.sin_family = AF_INET;     
-	serv_addr.sin_port = htons(PORT);    
-	serv_addr.sin_addr = *((struct in_addr *)server->h_addr);
-	bzero(&(serv_addr.sin_zero), 8);     
-	
-    
-	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-        printf("ERROR connecting\n");
+#define SENTINEL_SOCKET_PORT 7777
+#define SENTINEL_SOCKET_QUEUE_CAPACITY 10
 
-    printf("Enter the message: ");
-    bzero(buffer, 256);
-    fgets(buffer, 256, stdin);
-    
-	/* write in the socket */
-	n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0) 
-		printf("ERROR writing to socket\n");
+using namespace std;
 
-    bzero(buffer,256);
-	
-	/* read from the socket */
-    n = read(sockfd, buffer, 256);
-    if (n < 0) 
-		printf("ERROR reading from socket\n");
+int main(){
+    // Create Data Communication Socket
+    int data_communication_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if(data_communication_socket == -1)
+      pError("\aError on data communication socket creation!");
+    else
+      cout << ">> Socket created successfully" << endl;
 
-    printf("%s\n",buffer);
+    // Connect Data Communication Socket
+    struct sockaddr_in data_communication_socket_addr;
+    data_communication_socket_addr.sin_family = AF_INET;
+    data_communication_socket_addr.sin_port = SENTINEL_SOCKET_PORT;
+    data_communication_socket_addr.sin_addr.s_addr = INADDR_ANY;
+    bzero(&(data_communication_socket_addr.sin_zero), 8);
     
-	close(sockfd);
-    return 0;
+    if(connect(data_communication_socket, (const sockaddr *)&data_communication_socket_addr, sizeof(data_communication_socket_addr) ) == -1)
+      pError("\aError on Data Communication Socket conection!");   
+    else
+      cout << ">> Connection to server established successfully" << endl;
+    
+    // Write in socket
+    char data_buffer[1000] = "Hello MeineBox Server! I hope so you are good. Regards from MeineBox client1";
+    write(data_communication_socket, &data_buffer, strlen(data_buffer));
+    
+    // Read from socket 
+
+
+    // Close
+    close(data_communication_socket);
 }
+
