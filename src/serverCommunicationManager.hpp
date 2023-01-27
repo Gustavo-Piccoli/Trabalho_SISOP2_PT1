@@ -1,0 +1,6 @@
+#ifndef __COMMUNICATION_MANAGER_HPP
+#define __COMMUNICATION_MANAGER_HPP
+
+
+
+#endif
