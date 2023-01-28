@@ -46,6 +46,8 @@ void *serverNewDeviceSentinelService(void *servers_sentinel_socket_arg){
             pthread_t registerNewDataCommunicationSocket_thread;
             pthread_t runNewDataCommunicationSocket_thread;
             ClientDeviceConected clientDeviceConected;
+            clientDeviceConected.client_device_address = data_communication_socket_addr;
+            clientDeviceConected.socket_fd = data_communication_socket;
 
             pthread_create(&registerNewDataCommunicationSocket_thread, NULL, registerNewDataCommunicationSocket,NULL);
             pthread_create(&runNewDataCommunicationSocket_thread, NULL, runNewDataCommunicationSocket,(void*)&clientDeviceConected);
@@ -70,11 +72,13 @@ void *runNewDataCommunicationSocket(void *clientDeviceConected_arg){
         write(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
         read(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
         strcpy( clientDeviceConected.userMeineBox.login, data_buffer);
+        cout << "User Login Recieved: " << clientDeviceConected.userMeineBox.login << endl;
 
         strcpy(data_buffer, "\t >>Password:");
         write(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
         read(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
         strcpy( clientDeviceConected.userMeineBox.passwd, data_buffer);
+        cout << "User Password Recieved: " << clientDeviceConected.userMeineBox.passwd << endl;
 
         if( checkLogin(clientDeviceConected.userMeineBox) ){
             cout << "  >> Login validated successfully!" << endl;
