@@ -1,7 +1,12 @@
 #ifndef __USER_TERMINAL_FUNCTIONS_HPP
 #define __USER_TERMINAL_FUNCTIONS_HPP
 
+#include <iostream>
+#include <unistd.h>
 #include "userHelp.hpp"
+#include "global_definitions.hpp"
+
+using namespace std;
 
 void userTerminal_help(){
       cout << userCommandsHelpText << endl;

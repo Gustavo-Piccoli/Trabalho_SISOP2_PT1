@@ -72,11 +72,18 @@ void *userTerminalThread( void *userTerminalThreadInfo ){
     cout << "$ ";
     cin >> command;
 
-    if(command == "login"){
+    if(command == "help"){
+      userTerminal_help();
+    }else if(command == "login"){
+      userTerminal_login(data_communication_socket);
     }else if(command == "start"){
-    }else if(command == "stop"){
+      userTerminal_start(is_syncronization_active);
     }else if(command == "status"){
-    }else if(command == "help"){
+      userTerminal_status(is_syncronization_active);
+    }else if(command == "stop"){
+      userTerminal_stop(is_syncronization_active);
+    }else if(command == "register"){
+      userTerminal_register(data_communication_socket);
     }else if(command == "quit"){
       *is_syncronization_active = false;
       return NULL;
