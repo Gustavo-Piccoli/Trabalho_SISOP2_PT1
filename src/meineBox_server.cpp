@@ -50,7 +50,7 @@ int main(){
 //     // Read from Data Socket
 //     char data_buffer[1000] = "";
 //     size_t bytes_read;
-//     bytes_read = read(data_communication_socket, &data_buffer, 1000);
+//     bytes_read = read(info_data_communication_socket, &data_buffer, 1000);
 
 //     if( bytes_read < 0 )
 //         pError("\a### Error on reding from data communication socket!");
@@ -64,6 +64,6 @@ int main(){
     // Close
 while(1);
     close(servers_sentinel_socket);
-//     close(data_communication_socket);
+//     close(info_info_data_communication_socket);
     return 0;
 }

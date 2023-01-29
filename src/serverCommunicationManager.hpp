@@ -31,23 +31,23 @@ void *serverNewDeviceSentinelService(void *servers_sentinel_socket_arg){
         }
 
         // Accept
-        struct sockaddr_in data_communication_socket_addr;
-        socklen_t data_communication_socket_addr_length;
-        int data_communication_socket = accept(servers_sentinel_socket, (struct sockaddr *)&data_communication_socket_addr, &data_communication_socket_addr_length);
-        if(data_communication_socket == -1){
+        struct sockaddr_in info_data_communication_socket_addr;
+        socklen_t info_data_communication_socket_addr_length;
+        int info_data_communication_socket = accept(servers_sentinel_socket, (struct sockaddr *)&info_data_communication_socket_addr, &info_data_communication_socket_addr_length);
+        if(info_data_communication_socket == -1){
             cout << "\a### Failure in accept connection!" << endl;
         }else{
             cout << ">> Connection established: " << endl;
-            cout << "\t> Port: " << data_communication_socket_addr.sin_port << endl;
-            cout << "\t> Address: " << data_communication_socket_addr.sin_addr.s_addr << endl;
-            cout << "\t> Address Family: " << data_communication_socket_addr.sin_family << endl;
-            cout << "\t> Address Length: " << data_communication_socket_addr_length << endl;
+            cout << "\t> Port: " << info_data_communication_socket_addr.sin_port << endl;
+            cout << "\t> Address: " << info_data_communication_socket_addr.sin_addr.s_addr << endl;
+            cout << "\t> Address Family: " << info_data_communication_socket_addr.sin_family << endl;
+            cout << "\t> Address Length: " << info_data_communication_socket_addr_length << endl;
 
             pthread_t registerNewDataCommunicationSocket_thread;
             pthread_t runNewDataCommunicationSocket_thread;
             ClientDeviceConected clientDeviceConected;
-            clientDeviceConected.client_device_address = data_communication_socket_addr;
-            clientDeviceConected.socket_fd = data_communication_socket;
+            clientDeviceConected.client_device_address = info_data_communication_socket_addr;
+            clientDeviceConected.socket_fd = info_data_communication_socket;
 
             pthread_create(&registerNewDataCommunicationSocket_thread, NULL, registerNewDataCommunicationSocket,NULL);
             pthread_create(&runNewDataCommunicationSocket_thread, NULL, runNewDataCommunicationSocket,(void*)&clientDeviceConected);
@@ -62,29 +62,31 @@ void *registerNewDataCommunicationSocket(void *arg){
 }
 
 void *runNewDataCommunicationSocket(void *clientDeviceConected_arg){
-    ClientDeviceConected clientDeviceConected = *( (ClientDeviceConected*)clientDeviceConected_arg );
     char data_buffer[DATA_COMMUNICATION_BUFFER_CAPACITY] = "";
-    
-    // Login Validation
+    ClientDeviceConected clientDeviceConected = *( (ClientDeviceConected*)clientDeviceConected_arg );
     clientDeviceConected.login_validated = false;
-    while(!clientDeviceConected.login_validated){
-        strcpy(data_buffer, "\t >>Login:");
-        write(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
+    clientDeviceConected.is_connected = true;
+    
+    // Waiting Client Operation Requisition
+    while(clientDeviceConected.is_connected){
         read(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
-        strcpy( clientDeviceConected.userMeineBox.login, data_buffer);
-        cout << "User Login Recieved: " << clientDeviceConected.userMeineBox.login << endl;
+        
+        // Login Validation
+        if(!clientDeviceConected.login_validated){
+            read(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
+            strcpy( clientDeviceConected.userMeineBox.login, data_buffer);
+            cout << "User Login Recieved: " << clientDeviceConected.userMeineBox.login << endl;
 
-        strcpy(data_buffer, "\t >>Password:");
-        write(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
-        read(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
-        strcpy( clientDeviceConected.userMeineBox.passwd, data_buffer);
-        cout << "User Password Recieved: " << clientDeviceConected.userMeineBox.passwd << endl;
+            read(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
+            strcpy( clientDeviceConected.userMeineBox.passwd, data_buffer);
+            cout << "User Password Recieved: " << clientDeviceConected.userMeineBox.passwd << endl;
 
-        if( checkLogin(clientDeviceConected.userMeineBox) ){
-            cout << "  >> Login validated successfully!" << endl;
-            clientDeviceConected.login_validated = true;
-        }else{
-            cout << "\a  >> Invalid Login or Password! Try again ..." << endl;
+            if( checkLogin(clientDeviceConected.userMeineBox) ){
+                cout << "  >> Login validated successfully!" << endl;
+                clientDeviceConected.login_validated = true;
+            }else{
+                cout << "\a  >> Invalid Login or Password! Try again ..." << endl;
+            }
         }
     }
 
@@ -116,7 +118,7 @@ bool checkLogin(UserMeineBox userMeineBox){
 //     UserMeineBox userDataToCheck;
 //     size_t userDataToCheck_bytes_read;
 
-//     userDataToCheck_bytes_read = read( data_communication_socket, &userDataToCheck, sizeof(UserMeineBox) );
+//     userDataToCheck_bytes_read = read( info_data_communication_socket, &userDataToCheck, sizeof(UserMeineBox) );
 
 //     if( userDataToCheck_bytes_read < 0 ){
 //         cout << "Problems in read user login data!" << endl;

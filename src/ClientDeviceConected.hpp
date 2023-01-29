@@ -9,6 +9,7 @@ typedef struct ClientDeviceConected{
     sockaddr_in client_device_address;
     UserMeineBox userMeineBox;
     bool login_validated;
+    bool is_connected;
 }ClientDeviceConected;
 
 #endif
