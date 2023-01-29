@@ -16,7 +16,8 @@ using namespace std;
 // Provisory Prototypes
 void *serverNewDeviceSentinelService(void *);
 void *registerNewDataCommunicationSocket(void *);
-void *runNewDataCommunicationSocket(void *);
+void *runNewInfoDataCommunicationSocket(void *);
+void *runNewSyncDataCommunicationSocket(void *);
 bool checkLogin(UserMeineBox );
 
 void *serverNewDeviceSentinelService(void *servers_sentinel_socket_arg){
@@ -43,14 +44,13 @@ void *serverNewDeviceSentinelService(void *servers_sentinel_socket_arg){
             cout << "\t> Address Family: " << info_data_communication_socket_addr.sin_family << endl;
             cout << "\t> Address Length: " << info_data_communication_socket_addr_length << endl;
 
-            pthread_t registerNewDataCommunicationSocket_thread;
-            pthread_t runNewDataCommunicationSocket_thread;
+            // pthread_t registerNewDataCommunicationSocket_thread;
             ClientDeviceConected clientDeviceConected;
             clientDeviceConected.client_device_address = info_data_communication_socket_addr;
-            clientDeviceConected.socket_fd = info_data_communication_socket;
+            clientDeviceConected.info_socket_fd = info_data_communication_socket;
 
-            pthread_create(&registerNewDataCommunicationSocket_thread, NULL, registerNewDataCommunicationSocket,NULL);
-            pthread_create(&runNewDataCommunicationSocket_thread, NULL, runNewDataCommunicationSocket,(void*)&clientDeviceConected);
+            // pthread_create(&registerNewDataCommunicationSocket_thread, NULL, registerNewDataCommunicationSocket,NULL);
+            pthread_create(&clientDeviceConected.info_thread, NULL, runNewInfoDataCommunicationSocket,(void*)&clientDeviceConected);
         }
     }
 
@@ -61,33 +61,74 @@ void *registerNewDataCommunicationSocket(void *arg){
     return NULL;
 }
 
-void *runNewDataCommunicationSocket(void *clientDeviceConected_arg){
+void *runNewInfoDataCommunicationSocket(void *clientDeviceConected_arg){
     char data_buffer[DATA_COMMUNICATION_BUFFER_CAPACITY] = "";
     ClientDeviceConected clientDeviceConected = *( (ClientDeviceConected*)clientDeviceConected_arg );
     clientDeviceConected.login_validated = false;
     clientDeviceConected.is_connected = true;
     
+    // Sync Socket Creation
+    if(connect(clientDeviceConected.sync_socket_fd, (const sockaddr*)&(clientDeviceConected.client_device_address), sizeof(clientDeviceConected.client_device_address) ) == -1){
+        cout << "  ## Error to create sync socket:" << endl;
+        cout << "  \t# Client Address: " << clientDeviceConected.client_device_address.sin_addr.s_addr << endl;
+        cout << "  \t# Client Port: " << clientDeviceConected.client_device_address.sin_port << endl;
+        return NULL;    
+    }
+    
     // Waiting Client Operation Requisition
+    int requisition_type;
+
     while(clientDeviceConected.is_connected){
-        read(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
-        
-        // Login Validation
-        if(!clientDeviceConected.login_validated){
-            read(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
-            strcpy( clientDeviceConected.userMeineBox.login, data_buffer);
-            cout << "User Login Recieved: " << clientDeviceConected.userMeineBox.login << endl;
+        // Fetch client requisition
+        read(clientDeviceConected.info_socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
 
-            read(clientDeviceConected.socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
-            strcpy( clientDeviceConected.userMeineBox.passwd, data_buffer);
-            cout << "User Password Recieved: " << clientDeviceConected.userMeineBox.passwd << endl;
+        // Decode requisition type
+        switch(requisition_type){
+            case CLIENT_REQUEST_LOGIN:
+                // Login Validation
+                if(!clientDeviceConected.login_validated){
+                    read(clientDeviceConected.info_socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
+                    strcpy( clientDeviceConected.userMeineBox.login, data_buffer);
+                    cout << "User Login Recieved: " << clientDeviceConected.userMeineBox.login << endl;
 
-            if( checkLogin(clientDeviceConected.userMeineBox) ){
-                cout << "  >> Login validated successfully!" << endl;
-                clientDeviceConected.login_validated = true;
-            }else{
-                cout << "\a  >> Invalid Login or Password! Try again ..." << endl;
-            }
+                    read(clientDeviceConected.info_socket_fd, (void*)&data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY );
+                    strcpy( clientDeviceConected.userMeineBox.passwd, data_buffer);
+                    cout << "User Password Recieved: " << clientDeviceConected.userMeineBox.passwd << endl;
+
+                    if( checkLogin(clientDeviceConected.userMeineBox) ){
+                        cout << "  >> Login validated successfully!" << endl;
+                        clientDeviceConected.login_validated = true;
+                        pthread_create(&clientDeviceConected.sync_thread, NULL, runNewSyncDataCommunicationSocket, (void*)&clientDeviceConected);
+                    }else{
+                        cout << "\a  >> Invalid Login or Password! Try again ..." << endl;
+                    }
+                }
+                break;
+            case CLIENT_REQUEST_REGISTER:
+
+                break;
+            case CLIENT_REQUEST_START:
+                if(clientDeviceConected.login_validated){
+                    if(clientDeviceConected.is_service_active){
+                    }
+                }
+                break;
+            case CLIENT_REQUEST_STATUS:
+                if(clientDeviceConected.login_validated){
+                }
+                break;
+            case CLIENT_REQUEST_STOP:
+                if(clientDeviceConected.login_validated){
+                    if(!clientDeviceConected.is_service_active){
+                    }
+                }
+                break;
         }
+        
+        
+        
+
+        
     }
 
     // Sincronization
@@ -97,8 +138,29 @@ void *runNewDataCommunicationSocket(void *clientDeviceConected_arg){
 
 
     // Close
-    close(clientDeviceConected.socket_fd);
+    close(clientDeviceConected.info_socket_fd);
     return NULL;
+}
+
+
+void *runNewSyncDataCommunicationSocket(void *clientDeviceConected_arg){
+    while(1){
+        // Receive Sync List
+
+        // Compare the Sync List from device client and server's Sync List for this client 
+        if(/*sync list's are diferent*/1){
+            if(/*There are diferences in client sync list made before start service */1){
+                // Server orders CLIENT to RECEIVE a sync datagram
+                // buffer == A sync datagram from a file to needed to be modified
+                // write(to_sync_data_socket);
+            }else{
+            // Server orders CLIENT to SEND a sync datagram
+            //read(sync_data_socket);
+            // update_server_db
+            // update servers sync list for this client 
+            }
+        }
+    }
 }
 
 bool checkLogin(UserMeineBox userMeineBox){

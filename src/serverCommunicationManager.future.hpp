@@ -15,7 +15,7 @@ using namespace std;
 
 void *serverNewDeviceSentinelService(void *);
 void *registerNewDataCommunicationSocket(void *);
-void *runNewDataCommunicationSocket(void *);
+void *runNewInfoDataCommunicationSocket(void *);
 bool checkLogin(UserMeineBox );
 
 #endif
