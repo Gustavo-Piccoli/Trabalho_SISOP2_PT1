@@ -7,6 +7,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #include "global_definitions.hpp"
 #include "ClientDeviceConected.hpp"
@@ -25,6 +27,9 @@ void disconect_client_device(ClientDeviceConected *);
 
 void *serverNewDeviceSentinelService(void *servers_sentinel_socket_arg){
     int servers_sentinel_socket = *((int *)servers_sentinel_socket_arg);
+    struct sockaddr_in info_data_communication_socket_addr;
+    socklen_t info_data_communication_socket_addr_length = sizeof(struct sockaddr_in);
+    int info_data_communication_socket;
 
     while(true) {
         // Listen
@@ -34,9 +39,8 @@ void *serverNewDeviceSentinelService(void *servers_sentinel_socket_arg){
             cout << ">> Awaiting for connection attempt ..." << endl;
 
         // Accept
-        struct sockaddr_in info_data_communication_socket_addr;
-        socklen_t info_data_communication_socket_addr_length;
-        int info_data_communication_socket = accept(servers_sentinel_socket, (struct sockaddr *)&info_data_communication_socket_addr, &info_data_communication_socket_addr_length);
+        info_data_communication_socket = accept(servers_sentinel_socket, (struct sockaddr *)&info_data_communication_socket_addr, &info_data_communication_socket_addr_length);
+
         if (info_data_communication_socket == -1){
             cout << "\a### Failure in accept connection!" << endl;
         }else{
@@ -70,16 +74,25 @@ void *runNewInfoDataCommunicationSocket(void *clientDeviceConected_arg){
 
     // SYNC Data Socket Creation
     clientDeviceConected.sync_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if(info_data_communication_socket == -1)
+    if(clientDeviceConected.sync_socket_fd == -1)
         pError("\a  ##Error on SYNC data communication socket creation!");
     else
       cout << "  >> Sync Data Socket created successfully ..." << endl;
     
     clientDeviceConected.client_device_address_sync = clientDeviceConected.client_device_address_info;
     clientDeviceConected.client_device_address_sync.sin_port = CLIENT_RECEIVE_CONNECTION_PORT;
+    bzero(&(clientDeviceConected.client_device_address_sync.sin_zero), 8 );
 
     // SYNC Data Socket Connection
-    if (connect(clientDeviceConected.sync_socket_fd, (const sockaddr *)&(clientDeviceConected.client_device_address_sync), sizeof(clientDeviceConected.client_device_address_sync)) == -1){
+    int connect_result, i=3;
+    do{
+        connect_result = connect(clientDeviceConected.sync_socket_fd, (const sockaddr *)&(clientDeviceConected.client_device_address_sync), sizeof(clientDeviceConected.client_device_address_sync));
+        i--;
+        if(connect_result != -1)
+            i = 0;
+    }while(i);
+            
+    if (connect_result == -1){
         cout << "  ## Error to create sync socket:" << endl;
         cout << "  \t# Client Address: " << clientDeviceConected.client_device_address_sync.sin_addr.s_addr << endl;
         cout << "  \t# Client Port: " << clientDeviceConected.client_device_address_sync.sin_port << endl;
