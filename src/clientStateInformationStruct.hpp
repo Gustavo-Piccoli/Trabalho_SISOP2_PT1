@@ -8,6 +8,7 @@ typedef struct ClientStateInformation{
     int sync_data_communication_socket;
     bool is_syncronization_active;
     bool is_user_logged;
+    bool is_connectded;
     UserMeineBox userMeineBox;
 }ClientStateInformation;
 

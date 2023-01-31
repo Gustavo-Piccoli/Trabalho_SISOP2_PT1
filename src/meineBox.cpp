@@ -25,32 +25,55 @@ int main(){
   cout << "\t\t\t==== v"<< MEINEBOX_VERSION <<" ====" << endl;
   cout << "  >> Inicializing ..." << endl;
 
-  // Create Data and Sync Communication Sockets
+  // Create INFO Data Communication Sockets
   int info_data_communication_socket = socket(AF_INET, SOCK_STREAM, 0);
-  int sync_data_communication_socket = socket(AF_INET, SOCK_STREAM, 0);
 
   if(info_data_communication_socket == -1)
     pError("\a  ##Error on INFO data communication socket creation!");
   else
     cout << "  >> INFO Data Socket created successfully ..." << endl;
 
-  if(sync_data_communication_socket == -1)
-    pError("\a  ##Error on SYNC data communication socket creation!");
-  else
-    cout << "  >> SYNC Data Socket created successfully ..." << endl;
-
-  // Connect Info and Sync Data Communication Sockets
+  // Connect Info Data Communication Sockets
   struct sockaddr_in server_sentinel_socket_addr; 
   server_sentinel_socket_addr.sin_family = AF_INET;
   server_sentinel_socket_addr.sin_port = SENTINEL_SOCKET_PORT;
   server_sentinel_socket_addr.sin_addr.s_addr = INADDR_ANY;
   bzero(&(server_sentinel_socket_addr.sin_zero), 8);
   
-  if(connect(info_data_communication_socket, (const sockaddr *)&server_sentinel_socket_addr, sizeof(server_sentinel_socket_addr) ) == -1)
+  if(connect(info_data_communication_socket, (struct sockaddr *)&server_sentinel_socket_addr, sizeof(server_sentinel_socket_addr) ) == -1)
     pError("\a  ##Failure: No server return for attemp of INFO Data Communication Socket conection!");   
-  if(connect(sync_data_communication_socket, (const sockaddr *)&server_sentinel_socket_addr, sizeof(server_sentinel_socket_addr) ) == -1)
-    pError("\a  ##Failure: No server return for attemp of SYNC Data Communication Socket conection!");   
+
+  // TEMP socket to listen SYNC Data socket
+  int temp_socket = socket(AF_INET, SOCK_STREAM, 0);
+  struct sockaddr_in  temp_socket_addr;
+  temp_socket_addr.sin_family = AF_INET;
+  temp_socket_addr.sin_port = CLIENT_RECEIVE_CONNECTION_PORT;
+  temp_socket_addr.sin_addr.s_addr = INADDR_ANY;
+  bzero(&(temp_socket_addr.sin_zero), 8);
+
+  if(bind(temp_socket, (struct sockaddr *)&temp_socket_addr, sizeof(temp_socket_addr)) == -1)
+      pError("\a### Error on TEMP socket binding!");
+  else
+      cout << ">> TEMP Socket binded to port "<< CLIENT_RECEIVE_CONNECTION_PORT << " successfully" << endl;
   
+  // Listen in TEMP socket to create SYNC Data socket
+  if(listen(temp_socket,SYNC_SOCKET_QUEUE_CAPACITY) == -1)
+    pError("\a  ##Failure: Can't listen on TEMP socket to recieve SYNC socket!");   
+  else
+    cout << ">> TEMP socket listen: Awaiting for server request for SYNC socket ..." << endl;
+
+  // Accept SYNC Data socket
+  sockaddr_in server_sync_socket_address;
+  socklen_t server_sync_socket_address_len;
+  int sync_data_communication_socket = accept(temp_socket, (struct sockaddr *)&server_sync_socket_address, &server_sync_socket_address_len);
+  close(temp_socket);
+
+  if(sync_data_communication_socket == -1)
+    pError("\a  ##Error on SYNC data communication socket creation(acceptance)!");
+  else
+    cout << "  >> SYNC Data Socket created(accepted) successfully ..." << endl;
+
+
   cout << "  >> Connection to server established successfully ..." << endl;
   cout << "  >> Thanks for use MeineBox. Type 'login' if you have an account or 'register' to sign in" << endl;
 
@@ -60,6 +83,7 @@ int main(){
   clientStateInformation.info_data_communication_socket = info_data_communication_socket;
   clientStateInformation.is_syncronization_active = false;
   clientStateInformation.is_user_logged = false;
+  clientStateInformation.is_connectded = true;
   strcpy(clientStateInformation.userMeineBox.login, "No one logged in");
   strcpy(clientStateInformation.userMeineBox.passwd, "No one logged in");
 
@@ -109,17 +133,29 @@ void *userTerminalThread( void *clientStateInformation_arg ){
     }else{
       cout << endl << "  Command '" << command << "' not found" << endl;
     }
-
   }
-
 }
 
 
 void *syncronizationModuleThread( void *clientStateInformation_arg ){
   ClientStateInformation *clientStateInformation = (ClientStateInformation*)clientStateInformation_arg;
   
-  while(true){
+  while(clientStateInformation->is_connectded){
+    // Froze if client stop service
+    while(!clientStateInformation->is_syncronization_active){};
 
+    // Send Sync List
+    //write(sync list in sync_data_socket);
+
+    // Read order from server
+    //read(order from sync_data_socket);
+
+    if(/*Server orders to read*/1){
+        //read(datagram from sync_data_socket);
+    }else if(/*Server orders to write*/1){
+        // write(datagram to sync_data_socket);
+    }
   }
 
+  return NULL;
 }

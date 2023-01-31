@@ -6,6 +6,7 @@
 #include "userHelp.hpp"
 #include "global_definitions.hpp"
 #include "clientStateInformationStruct.hpp"
+#include "DatagramStructures.hpp"
 
 using namespace std;
 
@@ -14,27 +15,61 @@ void userTerminal_help(){
 }
 
 void userTerminal_login(ClientStateInformation *clientStateInformation){
+    // int info_data_communication_socket = clientStateInformation->info_data_communication_socket;
+    // char data_buffer[DATA_COMMUNICATION_BUFFER_CAPACITY] = "";
+    // int bytes_read;
+
+    // // Login 
+    // bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
+    // cout << data_buffer;
+    // cin >> data_buffer;
+    // write(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
+
+    // // Password 
+    // bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
+    // cout << data_buffer;
+    // cin >> data_buffer;
+    // write(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
+
+    // // Verification
+    // bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
+    // if(1){
+    //     cout << "Welcome Mr. " << endl;
+    // }
     int info_data_communication_socket = clientStateInformation->info_data_communication_socket;
-    char data_buffer[DATA_COMMUNICATION_BUFFER_CAPACITY] = "";
-    int bytes_read;
+    ServerRequestResponseDatagram serverResponse;
+    ClientRequestDatagram clientRequest;
+    clientRequest.requisition_type = CLIENT_REQUEST_LOGIN;
+    int bytes_number;
 
     // Login 
-    bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-    cout << data_buffer;
-    cin >> data_buffer;
-    write(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-
-    // Password 
-    bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-    cout << data_buffer;
-    cin >> data_buffer;
-    write(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-
-    // Verification
-    bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-    if(1){
-        cout << "Welcome Mr. " << endl;
+    cout << "\t  >User Name: ";
+    cin >> clientRequest.userMeineBox.login;
+    cout << "\t  >Password: " << endl;
+    cin >> clientRequest.userMeineBox.passwd;
+    
+    // Request
+    bytes_number = write(info_data_communication_socket, &clientRequest, REQUEST_DATAGRAM_SIZE);
+    if(bytes_number == -1){
+        cout << "  ## Couldn't contact server ..." << endl;
+        return;
     }
+
+    // Response
+    bytes_number = read(info_data_communication_socket, &serverResponse, REQUEST_RESPONSE_DATAGRAM_SIZE );
+    if(bytes_number == -1){
+        cout << "  ## Couldn't contact server ..." << endl;
+        return;
+    }
+
+    if(serverResponse.was_login_validated_successfully){
+        cout << "  >> Welcome back Mr. " << serverResponse.userMeineBox.login << " !" << endl;
+        clientStateInformation->is_user_logged = serverResponse.was_login_validated_successfully;
+        clientStateInformation->userMeineBox = serverResponse.userMeineBox;
+    }else{
+        cout << "  ## Invalid username or password! Couldn't login ..." << endl;
+    }
+
 }
 
 void userTerminal_register(ClientStateInformation *clientStateInformation){

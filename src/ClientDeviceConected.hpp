@@ -11,7 +11,8 @@ typedef struct ClientDeviceConected{
     
     int info_socket_fd;
     int sync_socket_fd;
-    sockaddr_in client_device_address;
+    sockaddr_in client_device_address_info;
+    sockaddr_in client_device_address_sync;
     
     UserMeineBox userMeineBox;
     

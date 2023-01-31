@@ -3,21 +3,27 @@
 
 #include "userMeineBox.hpp"
 
-typedef struct DatagramClientRequisition{
+typedef struct ClientRequestDatagram{
+    int requisition_type;
     UserMeineBox userMeineBox;  // For login and register
-}DatagramClientRequisition;
+    bool service_activation_state; // For start and stop 
+    bool client_conection_state; // For quit 
 
-#define DatagramServerOrder DatagramClientRequisition;
+    // Server Reponse Exclusive Use
+    bool was_a_valid_user_name;  // For register
+    bool was_a_valid_pasword;   // For register
+    bool was_login_validated_successfully; // For login
 
-typedef struct DatagramData{
+}ClientRequestDatagram;
 
-}DatagramData;
+typedef ClientRequestDatagram ServerRequestResponseDatagram;
 
+typedef struct DataDatagram{
 
-typedef struct DatagramSyncronizationStateList{
-    
-}DatagramSyncronizationStateList;
+}DataDatagram;
 
+typedef struct SyncListDatagram{
 
+}SyncListDatagram;
 
 #endif // __DATAGRAM_STRUCTURES_HPP
