@@ -13,17 +13,27 @@ typedef struct ClientRequestDatagram{
     bool was_a_valid_user_name;  // For register
     bool was_a_valid_pasword;   // For register
     bool was_login_validated_successfully; // For login
+    bool service_activation_is_already_this; // For start and stop 
 
 }ClientRequestDatagram;
 
 typedef ClientRequestDatagram ServerRequestResponseDatagram;
 
 typedef struct DataDatagram{
+    bool should_receive_file;
+    bool should_send_file;
+    char filename[MAX_FILE_NAME_SIZE];
 
 }DataDatagram;
 
-typedef struct SyncListDatagram{
+struct file_info{
+    char name[MAX_FILE_NAME_SIZE];
+    time_t last_modification;
+};
 
-}SyncListDatagram;
+struct SyncList{
+    struct file_info files[MAX_SYNC_LIST_SIZE];
+    int num_files;
+};
 
 #endif // __DATAGRAM_STRUCTURES_HPP

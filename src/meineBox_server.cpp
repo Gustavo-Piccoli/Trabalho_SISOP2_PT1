@@ -27,7 +27,7 @@ int main(){
     // Bind Sentinel Socket
     struct sockaddr_in sentinel_server_socket_addr;
     sentinel_server_socket_addr.sin_family = AF_INET;
-    sentinel_server_socket_addr.sin_port = SENTINEL_SOCKET_PORT;
+    sentinel_server_socket_addr.sin_port = htons(SENTINEL_SOCKET_PORT);
     sentinel_server_socket_addr.sin_addr.s_addr = INADDR_ANY;
     bzero(&(sentinel_server_socket_addr.sin_zero), 8);
 

@@ -15,27 +15,6 @@ void userTerminal_help(){
 }
 
 void userTerminal_login(ClientStateInformation *clientStateInformation){
-    // int info_data_communication_socket = clientStateInformation->info_data_communication_socket;
-    // char data_buffer[DATA_COMMUNICATION_BUFFER_CAPACITY] = "";
-    // int bytes_read;
-
-    // // Login 
-    // bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-    // cout << data_buffer;
-    // cin >> data_buffer;
-    // write(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-
-    // // Password 
-    // bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-    // cout << data_buffer;
-    // cin >> data_buffer;
-    // write(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-
-    // // Verification
-    // bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-    // if(1){
-    //     cout << "Welcome Mr. " << endl;
-    // }
     int info_data_communication_socket = clientStateInformation->info_data_communication_socket;
     ServerRequestResponseDatagram serverResponse;
     ClientRequestDatagram clientRequest;
@@ -49,14 +28,14 @@ void userTerminal_login(ClientStateInformation *clientStateInformation){
     cin >> clientRequest.userMeineBox.passwd;
     
     // Request
-    bytes_number = write(info_data_communication_socket, &clientRequest, REQUEST_DATAGRAM_SIZE);
+    bytes_number = write(clientStateInformation->info_data_communication_socket, &clientRequest, REQUEST_DATAGRAM_SIZE);
     if(bytes_number == -1){
         cout << "  ## Couldn't contact server ..." << endl;
         return;
     }
 
     // Response
-    bytes_number = read(info_data_communication_socket, &serverResponse, REQUEST_RESPONSE_DATAGRAM_SIZE );
+    bytes_number = read(clientStateInformation->info_data_communication_socket, &serverResponse, REQUEST_RESPONSE_DATAGRAM_SIZE );
     if(bytes_number == -1){
         cout << "  ## Couldn't contact server ..." << endl;
         return;
@@ -77,11 +56,35 @@ void userTerminal_register(ClientStateInformation *clientStateInformation){
 }
 
 void userTerminal_start(ClientStateInformation *clientStateInformation){
+    ClientRequestDatagram clientRequest;
+    ServerRequestResponseDatagram serverResponse;
+    int bytes_number;
+
+    clientRequest.requisition_type = CLIENT_REQUEST_START;
     
-    if( clientStateInformation->is_syncronization_active )
+    // Request
+    bytes_number = write(clientStateInformation->info_data_communication_socket, &clientRequest, REQUEST_DATAGRAM_SIZE);
+    if(bytes_number == -1){
+        cout << "  ## Couldn't contact server ..." << endl;
+        return;
+    }
+
+    // Response
+    bytes_number = read(clientStateInformation->info_data_communication_socket, &serverResponse, REQUEST_RESPONSE_DATAGRAM_SIZE );
+    if(bytes_number == -1){
+        cout << "  ## Couldn't contact server ..." << endl;
+        return;
+    }
+    
+    if( serverResponse.service_activation_is_already_this )
         cout << "  Service is already active!" << endl;
-    else
-        clientStateInformation->is_syncronization_active = true;
+    else{
+        if( serverResponse.service_activation_state )
+            clientStateInformation->is_syncronization_active = true;
+        else
+            cout << "\a  ## Error: Can't start service!" << endl;
+    }
+
 }
 
 void userTerminal_stop(ClientStateInformation *clientStateInformation){
@@ -98,9 +101,10 @@ void userTerminal_status(ClientStateInformation *clientStateInformation){
             cout << "  > Active Service!" << endl;
         else
             cout << "  > Inactive Service!" << endl;
-    }else
+    }else{
         cout << "  No one logged in!" << endl;
         cout << "  (Use 'login' command or type 'help' for more explanation ...)" << endl;
+    }
 }
 
 
