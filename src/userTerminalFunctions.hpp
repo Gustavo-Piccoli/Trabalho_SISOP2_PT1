@@ -15,6 +15,7 @@ void userTerminal_help(){
 }
 
 void userTerminal_login(ClientStateInformation *clientStateInformation){
+    int info_data_communication_socket = clientStateInformation->info_data_communication_socket;
     ServerRequestResponseDatagram serverResponse;
     ClientRequestDatagram clientRequest;
     clientRequest.requisition_type = CLIENT_REQUEST_LOGIN;

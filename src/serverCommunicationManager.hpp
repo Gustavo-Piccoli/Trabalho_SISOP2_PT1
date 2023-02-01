@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <filesystem>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -13,6 +14,7 @@
 #include "global_definitions.hpp"
 #include "ClientDeviceConected.hpp"
 #include "DatagramStructures.hpp"
+#include "fileManager.hpp"
 
 using namespace std;
 
@@ -34,9 +36,14 @@ void *serverNewDeviceSentinelService(void *servers_sentinel_socket_arg){
     while(true) {
         // Listen
         if (listen(servers_sentinel_socket, SENTINEL_SOCKET_QUEUE_CAPACITY) == -1){
+            cout << TERMINAL_TEXT_COLOR_RED;
             cout << "\a### Failure in listen for connection!" << endl;
-        }else
+            cout << TERMINAL_TEXT_SETTING_RESET;
+        }else{
+            cout << TERMINAL_TEXT_COLOR_GREEN;
             cout << ">> Awaiting for connection attempt ..." << endl;
+            cout << TERMINAL_TEXT_SETTING_RESET;
+        }
 
         // Accept
         info_data_communication_socket = accept(servers_sentinel_socket, (struct sockaddr *)&info_data_communication_socket_addr, &info_data_communication_socket_addr_length);
@@ -49,6 +56,7 @@ void *serverNewDeviceSentinelService(void *servers_sentinel_socket_arg){
             cout << "\t> Address: " << info_data_communication_socket_addr.sin_addr.s_addr << endl;
             cout << "\t> Address Family: " << info_data_communication_socket_addr.sin_family << endl;
             cout << "\t> Address Length: " << info_data_communication_socket_addr_length << endl;
+            cout << TERMINAL_TEXT_SETTING_RESET;
 
             // pthread_t registerNewDataCommunicationSocket_thread;
             ClientDeviceConected clientDeviceConected;
@@ -58,6 +66,7 @@ void *serverNewDeviceSentinelService(void *servers_sentinel_socket_arg){
             // pthread_create(&registerNewDataCommunicationSocket_thread, NULL, registerNewDataCommunicationSocket,NULL);
             pthread_create(&clientDeviceConected.info_thread, NULL, runNewInfoDataCommunicationSocket, (void *)&clientDeviceConected);
         }
+        
     }
 
     return NULL;
@@ -86,7 +95,7 @@ void *runNewInfoDataCommunicationSocket(void *clientDeviceConected_arg){
     // SYNC Data Socket Connection
     int connect_result, i=3;
     do{
-        connect_result = connect(clientDeviceConected.sync_socket_fd, (const sockaddr *)&(clientDeviceConected.client_device_address_sync), sizeof(clientDeviceConected.client_device_address_sync));
+        connect_result = connect(clientDeviceConected.sync_socket_fd, (struct sockaddr *)&(clientDeviceConected.client_device_address_sync), sizeof(clientDeviceConected.client_device_address_sync));
         i--;
         if(connect_result == 0)
             i = 0;
@@ -197,32 +206,55 @@ void *runNewInfoDataCommunicationSocket(void *clientDeviceConected_arg){
 
 void *runNewSyncDataCommunicationSocket(void *clientDeviceConected_arg){
     ClientDeviceConected *clientDeviceConected = (ClientDeviceConected *)clientDeviceConected_arg;
-
+    SyncList clientSyncList;
+    SyncList serverSyncList;
+    
     while (clientDeviceConected->is_connected){
         // Froze if client stop service
         while (!clientDeviceConected->is_service_active){};
         
-
         /// Synchronization
         // Receive Sync List
 
         // Compare the Sync List from device client and server's Sync List for this client
-        if (/*sync list's are diferent*/ 1)
-        {
-            if (/*There are diferences in client sync list made before start service */ 1)
-            {
-                // Server orders CLIENT to RECEIVE a sync datagram
-                // buffer == A sync datagram from a file to needed to be modified
-                // write(to_sync_data_socket);
-            }
-            else
-            {
-                // Server orders CLIENT to SEND a sync datagram
-                // read(sync_data_socket);
-                // update_server_db
-                // update servers sync list for this client
+        int greater_list_len = std::max(clientSyncList.num_files, serverSyncList.num_files);
+        int *changes_to_do = new int[greater_list_len];
+
+        changes_to_do = compare_sync_lists(&clientSyncList, &serverSyncList);
+
+        // Send files
+        string file_name;
+        int file_size;
+        for( int i = 0 ; i < greater_list_len ; i++ ){
+            if(changes_to_do[i] != -1){
+                file_name = serverSyncList.files[i].name;
+                // filesystem::path file_path{file_name.};
+
+                // file_size = 
+                // read()
             }
         }
+
+        // Receive files
+
+
+        // if (/*sync list's are diferent*/ 1)
+        // {
+        //     if (/*There are diferences in client sync list made before start service */ 1)
+        //     {
+        //         // Server orders CLIENT to RECEIVE a sync datagram
+        //         // buffer == A sync datagram from a file to needed to be modified
+        //         // write(to_sync_data_socket);
+        //     }
+        //     else
+        //     {
+        //         // Server orders CLIENT to SEND a sync datagram
+        //         // read(sync_data_socket);
+        //         // update_server_db
+        //         // update servers sync list for this client
+        //     }
+        // }
+        delete changes_to_do;
     }
 
     return NULL;
