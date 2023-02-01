@@ -8,9 +8,9 @@
 #define SYNCRONIZE_FOLDER "~/sync_dir" 
 
 // SOCKETS
-#define SENTINEL_SOCKET_PORT 7775
+#define SENTINEL_SOCKET_PORT 7778
 #define SENTINEL_SOCKET_QUEUE_CAPACITY 20
-#define CLIENT_RECEIVE_CONNECTION_PORT 8843
+#define CLIENT_RECEIVE_CONNECTION_PORT 8841
 #define SYNC_SOCKET_QUEUE_CAPACITY 10
 #define DATA_COMMUNICATION_BUFFER_CAPACITY 1024
 
@@ -18,16 +18,17 @@
 #define REQUEST_DATAGRAM_SIZE sizeof(ClientRequestDatagram)
 #define REQUEST_RESPONSE_DATAGRAM_SIZE sizeof(ServerRequestResponseDatagram)
 
-#define CLIENT_REQUEST_LOGIN                    0x0000
-#define CLIENT_REQUEST_REGISTER                 0x0001
-#define CLIENT_REQUEST_START                    0x0002
-#define CLIENT_REQUEST_STATUS                   0x0003
-#define CLIENT_REQUEST_STOP                     0x0004
-#define CLIENT_DATAGRAM_SYNC_STATE_LIST         0x0005
+#define CLIENT_REQUEST_QUIT                     0x0000
+#define CLIENT_REQUEST_LOGIN                    0x0001
+#define CLIENT_REQUEST_REGISTER                 0x0002
+#define CLIENT_REQUEST_START                    0x0003
+#define CLIENT_REQUEST_STATUS                   0x0004
+#define CLIENT_REQUEST_STOP                     0x0005
+#define CLIENT_DATAGRAM_SYNC_STATE_LIST         0x0006
 
-#define SERVER_SYNC_ORDER_RECEIVE_DATAGRAM      0x0006
-#define SERVER_SYNC_ORDER_SEND_DATAGRAM         0x0007
+#define SERVER_SYNC_ORDER_RECEIVE_DATAGRAM      0x0007
+#define SERVER_SYNC_ORDER_SEND_DATAGRAM         0x0008
 
-#define SYNC_DATAGRAM                           0x0008
+#define SYNC_DATAGRAM                           0x0009
 
 #endif

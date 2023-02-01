@@ -13,6 +13,7 @@ typedef struct ClientRequestDatagram{
     bool was_a_valid_user_name;  // For register
     bool was_a_valid_pasword;   // For register
     bool was_login_validated_successfully; // For login
+    bool service_activation_is_already_this; // For start and stop 
 
 }ClientRequestDatagram;
 

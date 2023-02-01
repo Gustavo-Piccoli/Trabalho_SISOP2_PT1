@@ -80,7 +80,7 @@ void *runNewInfoDataCommunicationSocket(void *clientDeviceConected_arg){
       cout << "  >> Sync Data Socket created successfully ..." << endl;
     
     clientDeviceConected.client_device_address_sync = clientDeviceConected.client_device_address_info;
-    clientDeviceConected.client_device_address_sync.sin_port = CLIENT_RECEIVE_CONNECTION_PORT;
+    clientDeviceConected.client_device_address_sync.sin_port = htons(CLIENT_RECEIVE_CONNECTION_PORT);
     bzero(&(clientDeviceConected.client_device_address_sync.sin_zero), 8 );
 
     // SYNC Data Socket Connection
@@ -88,16 +88,18 @@ void *runNewInfoDataCommunicationSocket(void *clientDeviceConected_arg){
     do{
         connect_result = connect(clientDeviceConected.sync_socket_fd, (const sockaddr *)&(clientDeviceConected.client_device_address_sync), sizeof(clientDeviceConected.client_device_address_sync));
         i--;
-        if(connect_result != -1)
+        if(connect_result == 0)
             i = 0;
     }while(i);
             
     if (connect_result == -1){
-        cout << "  ## Error to create sync socket:" << endl;
+        cout << "  ## Error to connect sync socket:" << endl;
         cout << "  \t# Client Address: " << clientDeviceConected.client_device_address_sync.sin_addr.s_addr << endl;
         cout << "  \t# Client Port: " << clientDeviceConected.client_device_address_sync.sin_port << endl;
         disconect_client_device(&clientDeviceConected);
         return NULL;
+    }else{
+        cout << "  >> Sync Data Socket connected successfully ..." << endl;
     }
 
     // Waiting Client Operation Requisition
@@ -112,6 +114,8 @@ void *runNewInfoDataCommunicationSocket(void *clientDeviceConected_arg){
 
         // Decode requisition type
         switch (clientRequestDatagram.requisition_type){
+        case CLIENT_REQUEST_QUIT:
+            break;
         case CLIENT_REQUEST_LOGIN:
             // Login Validation
             if (!clientDeviceConected.login_validated){
@@ -138,19 +142,40 @@ void *runNewInfoDataCommunicationSocket(void *clientDeviceConected_arg){
             }
             break;
         case CLIENT_REQUEST_REGISTER:
+            // Register new user
+            if (!clientDeviceConected.login_validated){
+                cout << "User Login Recieved: " << clientRequestDatagram.userMeineBox.login << endl;
+                cout << "User Password Recieved: " << clientRequestDatagram.userMeineBox.passwd << endl;
 
-            break;
-        case CLIENT_REQUEST_START:
-            if (clientDeviceConected.login_validated)
-            {
-                if (clientDeviceConected.is_service_active)
+                if (checkLogin(clientRequestDatagram.userMeineBox)){
+                    cout << "  >> Login validated successfully!" << endl;
+                    clientDeviceConected.login_validated = true;
+                    clientDeviceConected.userMeineBox = clientRequestDatagram.userMeineBox;
+                    
+                    serverRequestResponseDatagram.was_login_validated_successfully = true;
+                    serverRequestResponseDatagram.userMeineBox = clientDeviceConected.userMeineBox;
+
+                    pthread_create(&clientDeviceConected.sync_thread, NULL, runNewSyncDataCommunicationSocket, (void *)&clientDeviceConected);
+                }
+                else
                 {
+                    cout << "\a  >> Invalid Login or Password!" << endl;
                 }
             }
             break;
+        case CLIENT_REQUEST_START:
+            if (clientDeviceConected.login_validated){
+                if(clientDeviceConected.is_service_active == true)
+                    serverRequestResponseDatagram.service_activation_is_already_this = true;
+                clientDeviceConected.is_service_active = true;
+                serverRequestResponseDatagram.service_activation_state = true;
+            }else{
+                serverRequestResponseDatagram.service_activation_state = false;
+                serverRequestResponseDatagram.service_activation_is_already_this = false;
+            }
+            break;
         case CLIENT_REQUEST_STATUS:
-            if (clientDeviceConected.login_validated)
-            {
+            if (clientDeviceConected.login_validated){
             }
             break;
         case CLIENT_REQUEST_STOP:
@@ -162,6 +187,9 @@ void *runNewInfoDataCommunicationSocket(void *clientDeviceConected_arg){
             }
             break;
         }
+
+        // Answer Client Request
+        write(clientDeviceConected.info_socket_fd, (void *)&serverRequestResponseDatagram, REQUEST_RESPONSE_DATAGRAM_SIZE);    
     }
 
     return NULL;
