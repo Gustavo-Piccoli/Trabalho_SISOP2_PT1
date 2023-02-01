@@ -48,7 +48,7 @@ int main(){
   server_sentinel_socket_addr.sin_addr = *((struct in_addr*)meineBox_server_host->h_addr_list[0]);
   bzero(&(server_sentinel_socket_addr.sin_zero), 8);
   
-  if(connect(info_data_communication_socket, (struct sockaddr *)&server_sentinel_socket_addr, sizeof(server_sentinel_socket_addr) ) == -1)
+  if(connect(info_data_communication_socket, (struct sockaddr *)&server_sentinel_socket_addr, sizeof(server_sentinel_socket_addr) ) < 0 )
     pError("\a  ##Failure: No server return for attemp of INFO Data Communication Socket conection!");   
 
   // TEMP socket to listen SYNC Data socket

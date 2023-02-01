@@ -19,11 +19,20 @@ typedef struct ClientRequestDatagram{
 typedef ClientRequestDatagram ServerRequestResponseDatagram;
 
 typedef struct DataDatagram{
+    bool should_receive_file;
+    bool should_send_file;
+    char filename[MAX_FILE_NAME_SIZE];
 
 }DataDatagram;
 
-typedef struct SyncListDatagram{
+struct file_info{
+    char name[MAX_FILE_NAME_SIZE];
+    time_t last_modification;
+};
 
-}SyncListDatagram;
+struct SyncList{
+    struct file_info files[MAX_SYNC_LIST_SIZE];
+    int num_files;
+};
 
 #endif // __DATAGRAM_STRUCTURES_HPP

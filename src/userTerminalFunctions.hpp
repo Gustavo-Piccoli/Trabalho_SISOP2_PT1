@@ -15,27 +15,7 @@ void userTerminal_help(){
 }
 
 void userTerminal_login(ClientStateInformation *clientStateInformation){
-    // int info_data_communication_socket = clientStateInformation->info_data_communication_socket;
-    // char data_buffer[DATA_COMMUNICATION_BUFFER_CAPACITY] = "";
-    // int bytes_read;
 
-    // // Login 
-    // bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-    // cout << data_buffer;
-    // cin >> data_buffer;
-    // write(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-
-    // // Password 
-    // bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-    // cout << data_buffer;
-    // cin >> data_buffer;
-    // write(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-
-    // // Verification
-    // bytes_read = read(info_data_communication_socket, &data_buffer, DATA_COMMUNICATION_BUFFER_CAPACITY);
-    // if(1){
-    //     cout << "Welcome Mr. " << endl;
-    // }
     int info_data_communication_socket = clientStateInformation->info_data_communication_socket;
     ServerRequestResponseDatagram serverResponse;
     ClientRequestDatagram clientRequest;
