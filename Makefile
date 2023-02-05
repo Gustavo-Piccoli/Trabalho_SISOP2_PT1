@@ -19,14 +19,14 @@ CC:=g++
 all: $(CLIENT_BIN) $(SERVER_BIN)
 
 $(CLIENT_BIN): $(CLIENT_OBJ)
-	$(CC) -o $(CLIENT_BIN) $(CLIENT_OBJ)
+	$(CC) -o $(CLIENT_BIN) $(CLIENT_OBJ) -pthread
 
 $(CLIENT_OBJ): $(CLIENT_SRC)
 	$(CC) -c $(CLIENT_SRC)
-	mv ./$(CLIENT_NAME).o $(CLIENT_OBJ)
+	mv ./$(CLIENT_NAME).o $(CLIENT_OBJ) 
 
 $(SERVER_BIN): $(SERVER_OBJ)
-	$(CC) -o $(SERVER_BIN) $(SERVER_OBJ)
+	$(CC) -o $(SERVER_BIN) $(SERVER_OBJ) -pthread
 
 $(SERVER_OBJ): $(SERVER_SRC)
 	$(CC) -c $(SERVER_SRC)

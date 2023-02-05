@@ -72,7 +72,7 @@ int main(){
 
   // Accept SYNC Data socket
   sockaddr_in server_sync_socket_address;
-  socklen_t server_sync_socket_address_len;
+  socklen_t server_sync_socket_address_len = sizeof(struct sockaddr_storage);
   int sync_data_communication_socket = accept(temp_socket, (struct sockaddr *)&server_sync_socket_address, &server_sync_socket_address_len);
   close(temp_socket);
 
