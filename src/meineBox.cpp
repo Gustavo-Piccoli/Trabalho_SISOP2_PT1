@@ -126,7 +126,7 @@ void *userTerminalThread( void *clientStateInformation_arg ){
     if(command == "help"){
       userTerminal_help();
     }else if(command == "login"){
-      userTerminal_login(clientStateInformation);
+    userTerminal_login(clientStateInformation);
     }else if(command == "start"){
       userTerminal_start(clientStateInformation);
     }else if(command == "status"){
@@ -135,6 +135,12 @@ void *userTerminalThread( void *clientStateInformation_arg ){
       userTerminal_stop(clientStateInformation);
     }else if(command == "register"){
       userTerminal_register(clientStateInformation);
+    }else if(command.find("download") != std::string::npos){ //Check if command contains substring "download"
+      userTerminal_download(clientStateInformation,command);
+    }else if(command.find("upload") != std::string::npos){
+      userTerminal_upload(clientStateInformation,command);
+    }else if(command.find("delete") != std::string::npos){
+      userTerminal_delete(clientStateInformation,command);
     }else if(command == "quit"){
       clientStateInformation->is_syncronization_active = false;
       return NULL;

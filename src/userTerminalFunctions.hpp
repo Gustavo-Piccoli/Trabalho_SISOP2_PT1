@@ -2,11 +2,16 @@
 #define __USER_TERMINAL_FUNCTIONS_HPP
 
 #include <iostream>
+#include <bits/stdc++.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include "userHelp.hpp"
+#include "userMeineBox.hpp"
 #include "global_definitions.hpp"
 #include "clientStateInformationStruct.hpp"
 #include "DatagramStructures.hpp"
+#include <sys/socket.h>
 
 using namespace std;
 
@@ -24,6 +29,7 @@ void userTerminal_login(ClientStateInformation *clientStateInformation){
     // Login 
     cout << "\t  >User Name: ";
     cin >> clientRequest.userMeineBox.login;
+
     cout << "\t  >Password: " << endl;
     cin >> clientRequest.userMeineBox.passwd;
     
@@ -45,6 +51,7 @@ void userTerminal_login(ClientStateInformation *clientStateInformation){
         cout << "  >> Welcome back Mr. " << serverResponse.userMeineBox.login << " !" << endl;
         clientStateInformation->is_user_logged = serverResponse.was_login_validated_successfully;
         clientStateInformation->userMeineBox = serverResponse.userMeineBox;
+        //return clientStateInformation->userMeineBox.login;
     }else{
         cout << "  ## Invalid username or password! Couldn't login ..." << endl;
     }
@@ -107,7 +114,63 @@ void userTerminal_status(ClientStateInformation *clientStateInformation){
     }
 }
 
+void userTerminal_download(ClientStateInformation *ClientStateInformation, string command)
+{
+    if (ClientStateInformation->is_user_logged)
+    {
+        std::string s = command;
+        std::string delimiter = "_";
+        std::string filename = s.substr(s.find(delimiter) + 1, s.length()); // get the filename
+    }
+    else
+    {
+        cout << "  No one logged in!" << endl;
+        cout << "  (Use 'login' command or type 'help' for more explanation ...)" << endl;
+    }
 
+}
+
+void userTerminal_upload(ClientStateInformation *ClientStateInformation, string command){
+    if(ClientStateInformation->is_user_logged){
+        std::string s = command;
+        std::string delimiter = "_";
+        std::string filename = s.substr(s.find(delimiter) + 1,s.length()); // get the filename
+        const char* str_filename = filename.c_str();
+        FILE *file = fopen(str_filename, "rw");
+        if(!file){
+            cout<<"This file doesn´t exist"<<endl;
+        }else{
+            send(ClientStateInformation->info_data_communication_socket, file, sizeof(file),0); //send the file to the server
+
+            char new_filename [200];
+            strcpy(new_filename,"./server_folder");
+            mkdir(new_filename, S_IRUSR | S_IWUSR | S_IXUSR);
+            strcat(new_filename,"/");
+            strcat(new_filename,str_filename);
+        
+
+
+        }
+    }else{
+        cout << "  No one logged in!" << endl;
+        cout << "  (Use 'login' command or type 'help' for more explanation ...)" << endl;
+    }
+
+}
+
+void userTerminal_delete(ClientStateInformation *ClientStateInformation, string command){
+    if(ClientStateInformation->is_user_logged){
+
+        std::string s = command;
+        std::string delimiter = "_";
+        std::string filename= s.substr(s.find(delimiter) + 1,s.length()); // get the filename
+
+    }else{
+        cout << "  No one logged in!" << endl;
+        cout << "  (Use 'login' command or type 'help' for more explanation ...)" << endl;
+    }
+
+}
 
 
 

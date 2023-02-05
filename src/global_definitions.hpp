@@ -31,6 +31,8 @@
 
 #define SYNC_DATAGRAM                           0x0009
 
+#define CLIENT_REQUEST_UPLOAD                   0x0010
+
 // TERMINAL COLOURS
 #define TERMINAL_TEXT_COLOR_BLACK "\033[1;30m"
 #define TERMINAL_TEXT_COLOR_RED "\033[1;31m"

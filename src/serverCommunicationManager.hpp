@@ -195,6 +195,15 @@ void *runNewInfoDataCommunicationSocket(void *clientDeviceConected_arg){
                 }
             }
             break;
+        case CLIENT_REQUEST_UPLOAD:
+            if (clientDeviceConected.login_validated)
+            {
+                if (!clientDeviceConected.is_service_active)
+                {
+                    //recv()
+                }
+            }
+            break;
         }
 
         // Answer Client Request
