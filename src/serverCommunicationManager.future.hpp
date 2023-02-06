@@ -13,9 +13,9 @@
 
 using namespace std;
 
-void *serverNewDeviceSentinelService(void *);
+void *serverSentinelModule(void *);
 void *registerNewDataCommunicationSocket(void *);
 void *runNewInfoDataCommunicationSocket(void *);
-bool checkLogin(UserMeineBox );
+bool checkLogin(UserDataBag );
 
 #endif

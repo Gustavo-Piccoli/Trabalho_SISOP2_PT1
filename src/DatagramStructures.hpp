@@ -1,11 +1,12 @@
 #ifndef __DATAGRAM_STRUCTURES_HPP
 #define __DATAGRAM_STRUCTURES_HPP
 
-#include "userMeineBox.hpp"
+#include <sys/stat.h>
+#include "userDataBag.hpp"
 
 typedef struct ClientRequestDatagram{
     int requisition_type;
-    UserMeineBox userMeineBox;  // For login and register
+    UserDataBag userDataBag;  // For login and register
     bool service_activation_state; // For start and stop 
     bool client_conection_state; // For quit 
 
@@ -20,20 +21,33 @@ typedef struct ClientRequestDatagram{
 typedef ClientRequestDatagram ServerRequestResponseDatagram;
 
 typedef struct DataDatagram{
-    bool should_receive_file;
-    bool should_send_file;
+    bool client_should_receive_file;
+    bool client_should_send_file;
     char filename[MAX_FILE_NAME_SIZE];
-
+    char *buffer;
 }DataDatagram;
 
-struct file_info{
+struct FileMetadata{
     char name[MAX_FILE_NAME_SIZE];
-    time_t last_modification;
+    int size;
+    
+    bool should_delete_file;
+    bool up_to_date_with_server;
+    bool up_to_date_with_client;
 };
 
 struct SyncList{
-    struct file_info files[MAX_SYNC_LIST_SIZE];
+    struct FileMetadata files[MAX_SYNC_LIST_SIZE];
     int num_files;
+};
+
+const string REQUESTS_NAMES[]{
+    "CLIENT_REQUEST_QUIT",    
+    "CLIENT_REQUEST_LOGIN",   
+    "CLIENT_REQUEST_REGISTER",
+    "CLIENT_REQUEST_START",   
+    "CLIENT_REQUEST_STATUS",  
+    "CLIENT_REQUEST_STOP"    
 };
 
 #endif // __DATAGRAM_STRUCTURES_HPP

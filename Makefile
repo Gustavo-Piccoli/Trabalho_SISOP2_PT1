@@ -1,5 +1,5 @@
-CLIENT_NAME:=meineBox
-SERVER_NAME:=meineBox_server
+CLIENT_NAME:=dataBag
+SERVER_NAME:=dataBag_server
 
 SRC_FOLDER_PATH:=src
 BIN_FOLDER_PATH:=bin

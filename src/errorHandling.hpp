@@ -10,5 +10,11 @@ void pError(string error_description){
     exit(1);
 }
 
+template <typename T>
+void pError(string error_description, T tty){
+    tty << error_description << endl;
+    exit(1);
+}
+
 
 #endif

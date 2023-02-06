@@ -8,21 +8,31 @@
 #include <pthread.h>
 
 #include "errorHandling.hpp"
-#include "userMeineBox.hpp"
+#include "userDataBag.hpp"
 #include "serverCommunicationManager.hpp"
 #include "global_definitions.hpp"
-
+#include "terminalHandle.hpp"
 
 using namespace std;
 
 int main(){
+    // Clear server terminals
+    clearServerTerminal(TERMINAL_SERVER_SENTINEL);
+    clearServerTerminal(TERMINAL_SERVER_INFO_SOCKET);
+    clearServerTerminal(TERMINAL_SERVER_SYNC_MODULE);
+    clearServerTerminal(TERMINAL_SERVER_DB_WATCHER);
 
     // Create Sentinel Socket
     int servers_sentinel_socket = socket(AF_INET, SOCK_STREAM, 0);
     if(servers_sentinel_socket == -1)
         pError("\a### Error on sentinel socket creation!");
     else
-        cout << ">> Server Sentinel Socket created successfully" << endl;
+        cout << "  ** Server Sentinel Socket created successfully ..." << endl;
+
+    // Settings
+    int optval = 1;
+    setsockopt(servers_sentinel_socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+
 
     // Bind Sentinel Socket
     struct sockaddr_in sentinel_server_socket_addr;
@@ -34,36 +44,21 @@ int main(){
     if( bind(servers_sentinel_socket, (const sockaddr *)&sentinel_server_socket_addr, sizeof(sentinel_server_socket_addr)) < 0 )
         pError("\a### Error on sentinel socket binding!");
     else
-        cout << ">> Server Sentinel Socket binded to port "<< SENTINEL_SOCKET_PORT << " successfully" << endl;
+        cout << "  ** Server Sentinel Socket binded to port ..."<< SENTINEL_SOCKET_PORT << " successfully" << endl;
     
     // Server's New Device Sentinel Service Thread Initialization
     pthread_t newDeviceSentinelServiceThread;
 
-    if( pthread_create( &newDeviceSentinelServiceThread, NULL, serverNewDeviceSentinelService, (void*)&servers_sentinel_socket) != 0 )
+    if( pthread_create( &newDeviceSentinelServiceThread, NULL, serverSentinelModule, (void*)&servers_sentinel_socket) != 0 )
         pError("Error on initizalization of New Device Sentinel Service Thread");    
     else
-        cout << ">> 'New Device Sentinel' Service initialized successufully" << endl;
+        cout << "  ** 'New Device Sentinel' Service initialized successufully ..." << endl;
 
-
-
-
-//     // Read from Data Socket
-//     char data_buffer[1000] = "";
-//     size_t bytes_read;
-//     bytes_read = read(info_data_communication_socket, &data_buffer, 1000);
-
-//     if( bytes_read < 0 )
-//         pError("\a### Error on reding from data communication socket!");
-//     else{
-//         cout << ">> Mesage recieved: " << endl;    
-//         cout << "\t> Length: " << bytes_read << " Bytes" << endl;    
-//         cout << "\t> Content: " << data_buffer << endl;    
-//     }
-
-    // Write on Data Socket
     // Close
-while(1);
+    pthread_t closing_monitor_thread;
+    volatile bool close_flag = false;
+    pthread_create(&closing_monitor_thread, NULL, monitore_if_server_should_close, (void*)&close_flag);
+    pthread_join(closing_monitor_thread, NULL);
     close(servers_sentinel_socket);
-//     close(info_info_data_communication_socket);
     return 0;
 }
