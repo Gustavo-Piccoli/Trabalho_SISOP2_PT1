@@ -150,8 +150,16 @@ void *client_folder_watcher_module(void *clientStateInformation_arg) {
     clientStateInformation->root_folder_path = folderPath + "/";
    
     // Cleaning sync dir folder
-    string cleaning_sync_dir_cmd = "rm " + clientStateInformation->root_folder_path + "*";
-    system(cleaning_sync_dir_cmd.c_str());
+    // Check if the folder is empty
+    bool empty = true;
+    for (const auto& entry : std::filesystem::directory_iterator(clientStateInformation->root_folder_path)) {
+        empty = false;
+        break;
+    }
+    if(!empty){
+        string cleaning_sync_dir_cmd = "rm " + clientStateInformation->root_folder_path + "*";
+        system(cleaning_sync_dir_cmd.c_str());
+    }
 
     tty << TERMINAL_TEXT_COLOR_WHITE;
     tty << endl << "  ** Synchronization module prepared ..." << endl;
